@@ -24,11 +24,9 @@ func NewRateLimiter(client *redis.Client, limit int, window time.Duration) *Rate
 		window: window,
 		contex: context.Background(),
 	}
-
 }
 
 func (rl *RateLimiter) Allow(key string) bool {
-
 	pipe := rl.client.TxPipeline()
 
 	inc := pipe.Incr(rl.contex, key)
@@ -37,17 +35,13 @@ func (rl *RateLimiter) Allow(key string) bool {
 	_, err := pipe.Exec(rl.contex)
 	if err != nil {
 		return false
-
 	}
 
 	return inc.Val() <= int64(rl.limit)
-
 }
 
 func rateLimiterMiddleware(rl *RateLimiter, next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 		if !rl.Allow(ip) {
 			http.Error(w, "Too many requests", http.StatusTooManyRequests)
@@ -56,11 +50,9 @@ func rateLimiterMiddleware(rl *RateLimiter, next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
-
 }
 
 func main() {
-
 	client := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
@@ -82,5 +74,4 @@ func main() {
 		return
 	}
 	fmt.Println("Server started on :8080")
-
 }
